@@ -1,5 +1,39 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- Modified for Yuzu. -->
 <resources>
+    <string name="sync_library">書庫同步</string>
+    <string name="sync_connection">SyncYomi 連線</string>
+    <string name="sync_connection_hint">輸入伺服器網址和 API 金鑰</string>
+    <string name="sync_server">伺服器網址</string>
+    <string name="sync_api_key">API 金鑰</string>
+    <string name="sync_disconnect">中斷連線</string>
+    <string name="sync_on_open">開啟應用程式時同步</string>
+    <string name="sync_on_read">閱讀後同步</string>
+    <string name="sync_now">立即同步</string>
+    <string name="sync_status_running">正在同步…</string>
+    <string name="sync_status_success">上次同步 %1$s</string>
+    <string name="sync_status_denied">請檢查 SyncYomi API 金鑰</string>
+    <string name="sync_status_version">請檢查伺服器網址及 SyncYomi v2 支援</string>
+    <string name="sync_status_http_error">SyncYomi 傳回 HTTP %1$d</string>
+    <string name="sync_status_connection_error">無法連線至同步服務</string>
+    <string name="sync_backend">同步服務</string>
+    <string name="sync_drive_sign_in">連線至 Google Drive</string>
+    <string name="sync_drive_account">Google Drive 帳號</string>
+    <string name="sync_onedrive_account">OneDrive 帳號</string>
+    <string name="sync_onedrive_setup_hint">輸入在 Microsoft Entra 中註冊的應用程式（用戶端）識別碼。</string>
+    <string name="sync_onedrive_client_id">應用程式（用戶端）識別碼</string>
+    <string name="sync_onedrive_sign_in">登入 OneDrive</string>
+    <string name="sync_onedrive_reconnect">請重新連結 OneDrive 帳號以恢復同步。</string>
+    <string name="sync_onedrive_denied">OneDrive 拒絕存取，請檢查 Files.ReadWrite.AppFolder 權限。</string>
+    <string name="sync_onedrive_http_error">OneDrive 同步失敗（HTTP %1$d）。</string>
+    <string name="sync_onedrive_setup_error">Microsoft 登入失敗（%1$s），請檢查應用程式註冊設定後再試。</string>
+    <string name="sync_drive_sign_in_again">重新連線</string>
+    <string name="sync_drive_reconnect">請重新連線至 Google Drive 以繼續同步</string>
+    <string name="sync_drive_denied">請確認 Yuzu 已啟用 Google Drive API 存取</string>
+    <string name="sync_drive_http_error">Google Drive 傳回 HTTP %1$d</string>
+    <string name="sync_drive_setup_error">Google 授權失敗（錯誤碼 %1$d）。請檢查帳號及 Yuzu 的 Android OAuth 註冊。</string>
+    <string name="sync_drive_play_services">這部裝置需要 Google Play 服務才能使用 Google Drive 同步</string>
+    <string name="sync_status_data_error">讀取或套用書庫資料時同步失敗</string>
     <string name="categories">類別</string>
     <string name="manga">藏書</string>
     <string name="chapters">章節</string>

@@ -1,3 +1,5 @@
+// Modified for Yuzu.
+
 package eu.kanade.tachiyomi.data.backup.models
 
 import kotlinx.serialization.Serializable
@@ -8,7 +10,7 @@ import tachiyomi.domain.history.model.History
 @Serializable
 data class BackupHistory(
     @ProtoNumber(1) var url: String,
-    @ProtoNumber(2) var lastRead: Long,
+    @ProtoNumber(2) var lastRead: Long = 0,
     @ProtoNumber(3) var readDuration: Long = 0,
 ) {
     fun getHistoryImpl(): History {

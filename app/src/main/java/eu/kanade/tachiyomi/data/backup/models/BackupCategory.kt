@@ -1,3 +1,5 @@
+// Modified for Yuzu.
+
 package eu.kanade.tachiyomi.data.backup.models
 
 import kotlinx.serialization.Serializable
@@ -6,11 +8,14 @@ import tachiyomi.domain.category.model.Category
 
 @Serializable
 class BackupCategory(
-    @ProtoNumber(1) var name: String,
+    @ProtoNumber(1) var name: String = "",
     @ProtoNumber(2) var order: Long = 0,
     @ProtoNumber(3) var id: Long = 0,
     // @ProtoNumber(3) val updateInterval: Int = 0, 1.x value not used in 0.x
     @ProtoNumber(100) var flags: Long = 0,
+    @ProtoNumber(601) var version: Long = 0,
+    @ProtoNumber(602) var uid: Long = 0,
+    @ProtoNumber(603) var lastModifiedAt: Long = 0,
 )
 
 val backupCategoryMapper = { category: Category ->

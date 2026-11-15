@@ -1,3 +1,5 @@
+// Modified for Yuzu.
+
 import com.android.build.api.variant.ApplicationVariant
 import com.android.build.api.variant.BuildConfigField
 import com.google.firebase.crashlytics.buildtools.gradle.CrashlyticsExtension
@@ -35,13 +37,13 @@ android {
     namespace = "eu.kanade.tachiyomi"
 
     defaultConfig {
-        applicationId = "app.mihon"
+        applicationId = "app.mihon.sync"
 
-        versionCode = 39
+        versionCode = 41
         versionName = "0.21.3"
 
         buildConfigField("boolean", "TELEMETRY_INCLUDED", "${Config.includeTelemetry}")
-        buildConfigField("boolean", "UPDATER_ENABLED", "${Config.enableUpdater}")
+        buildConfigField("boolean", "UPDATER_ENABLED", "false")
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -215,6 +217,7 @@ dependencies {
     implementation(projects.sourceApi)
     implementation(projects.sourceLocal)
     implementation(projects.data)
+    implementation(libs.sqldelight.runtime)
     implementation(projects.domain)
     implementation(projects.presentationCore)
     implementation(projects.presentationWidget)
@@ -239,6 +242,8 @@ dependencies {
     implementation(libs.kotlin.reflect)
 
     implementation(libs.bundles.kotlinx.coroutines)
+    implementation(libs.google.play.auth)
+    implementation(libs.microsoft.msal)
 
     implementation(libs.kotlinx.datetime)
 

@@ -1,3 +1,5 @@
+// Modified for Yuzu.
+
 package eu.kanade.tachiyomi.ui.reader
 
 import android.content.Context
@@ -34,6 +36,7 @@ import eu.kanade.tachiyomi.data.download.model.Download
 import eu.kanade.tachiyomi.data.saver.Image
 import eu.kanade.tachiyomi.data.saver.ImageSaver
 import eu.kanade.tachiyomi.data.saver.Location
+import eu.kanade.tachiyomi.data.sync.LibrarySyncWorker
 import eu.kanade.tachiyomi.source.Source
 import eu.kanade.tachiyomi.source.model.Page
 import eu.kanade.tachiyomi.source.online.HttpSource
@@ -77,6 +80,7 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import logcat.LogPriority
+import mihon.app.di.appGraph
 import mihon.core.metro.AppCoroutineScope
 import tachiyomi.core.common.preference.toggle
 import tachiyomi.core.common.util.system.logcat
@@ -703,6 +707,9 @@ class ReaderViewModel(
                     },
                 )
             }
+            if (onComplete && context.appGraph.syncPreferences.onRead.get()) {
+                LibrarySyncWorker.enqueue(context)
+            }
         }
     }
 
@@ -755,6 +762,9 @@ class ReaderViewModel(
             chapterReadStartTime = null
 
             upsertHistory.await(HistoryUpdate(chapterId, endTime, sessionReadDuration))
+            if (context.appGraph.syncPreferences.onRead.get()) {
+                progressWrites.withLock { LibrarySyncWorker.enqueue(context) }
+            }
         }
     }
 

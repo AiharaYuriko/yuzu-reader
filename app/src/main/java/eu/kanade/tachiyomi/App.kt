@@ -1,3 +1,5 @@
+// Modified for Yuzu.
+
 package eu.kanade.tachiyomi
 
 import android.annotation.SuppressLint
@@ -40,6 +42,7 @@ import eu.kanade.tachiyomi.data.coil.MangaCoverFetcher
 import eu.kanade.tachiyomi.data.coil.MangaCoverKeyer
 import eu.kanade.tachiyomi.data.coil.MangaKeyer
 import eu.kanade.tachiyomi.data.notification.Notifications
+import eu.kanade.tachiyomi.data.sync.LibrarySyncWorker
 import eu.kanade.tachiyomi.extension.ExtensionManager
 import eu.kanade.tachiyomi.network.NetworkHelper
 import eu.kanade.tachiyomi.network.NetworkPreferences
@@ -59,6 +62,7 @@ import logcat.AndroidLogcatLogger
 import logcat.LogPriority
 import logcat.LogcatLogger
 import mihon.app.di.AppGraph
+import mihon.app.di.appGraph
 import mihon.app.di.injekt.MetroInjektRegistrar
 import mihon.core.metro.AppCoroutineScope
 import mihon.core.metro.GraphProvider
@@ -272,6 +276,9 @@ class App : Application(), DefaultLifecycleObserver, SingletonImageLoader.Factor
 
     override fun onStart(owner: LifecycleOwner) {
         SecureActivityDelegate.onApplicationStart(this)
+        if (appGraph.syncPreferences.onOpen.get()) {
+            LibrarySyncWorker.enqueue(this)
+        }
     }
 
     override fun onStop(owner: LifecycleOwner) {

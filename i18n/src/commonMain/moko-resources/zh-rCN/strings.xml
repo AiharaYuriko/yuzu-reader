@@ -1,5 +1,39 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- Modified for Yuzu. -->
 <resources>
+    <string name="sync_library">书库同步</string>
+    <string name="sync_connection">SyncYomi 连接</string>
+    <string name="sync_connection_hint">填写服务器地址和 API 密钥</string>
+    <string name="sync_server">服务器地址</string>
+    <string name="sync_api_key">API 密钥</string>
+    <string name="sync_disconnect">断开连接</string>
+    <string name="sync_on_open">打开应用时同步</string>
+    <string name="sync_on_read">阅读后同步</string>
+    <string name="sync_now">立即同步</string>
+    <string name="sync_status_running">正在同步…</string>
+    <string name="sync_status_success">上次同步 %1$s</string>
+    <string name="sync_status_denied">请检查 SyncYomi API 密钥</string>
+    <string name="sync_status_version">请检查服务器地址及 SyncYomi v2 支持</string>
+    <string name="sync_status_http_error">SyncYomi 返回 HTTP %1$d</string>
+    <string name="sync_status_connection_error">无法连接到同步服务</string>
+    <string name="sync_backend">同步服务</string>
+    <string name="sync_drive_sign_in">连接 Google Drive</string>
+    <string name="sync_drive_account">Google Drive 账号</string>
+    <string name="sync_onedrive_account">OneDrive 账号</string>
+    <string name="sync_onedrive_setup_hint">输入在 Microsoft Entra 中注册的应用程序（客户端）ID。</string>
+    <string name="sync_onedrive_client_id">应用程序（客户端）ID</string>
+    <string name="sync_onedrive_sign_in">登录 OneDrive</string>
+    <string name="sync_onedrive_reconnect">请重新连接 OneDrive 账号以恢复同步。</string>
+    <string name="sync_onedrive_denied">OneDrive 拒绝访问，请检查 Files.ReadWrite.AppFolder 权限。</string>
+    <string name="sync_onedrive_http_error">OneDrive 同步失败（HTTP %1$d）。</string>
+    <string name="sync_onedrive_setup_error">微软登录失败（%1$s），请检查应用注册配置后重试。</string>
+    <string name="sync_drive_sign_in_again">重新连接</string>
+    <string name="sync_drive_reconnect">请重新连接 Google Drive 以继续同步</string>
+    <string name="sync_drive_denied">请检查 Yuzu 是否已启用 Google Drive API 访问</string>
+    <string name="sync_drive_http_error">Google Drive 返回 HTTP %1$d</string>
+    <string name="sync_drive_setup_error">Google 授权失败（错误码 %1$d）。请检查账号及 Yuzu 的 Android OAuth 注册。</string>
+    <string name="sync_drive_play_services">此设备需要 Google Play 服务才能使用 Google Drive 同步</string>
+    <string name="sync_status_data_error">读取或应用书库数据时同步失败</string>
     <string name="name">名称</string>
     <string name="categories">分类</string>
     <string name="manga">书架中的作品</string>

@@ -1,3 +1,5 @@
+// Modified for Yuzu.
+
 pluginManagement {
     includeBuild("gradle/build-logic")
     repositories {
@@ -23,6 +25,9 @@ dependencyResolutionManagement {
         google()
         mavenCentral()
         maven(url = "https://www.jitpack.io")
+        maven(url = "https://pkgs.dev.azure.com/MicrosoftDeviceSDK/DuoSDK-Public/_packaging/Duo-SDK-Feed/maven/v1") {
+            content { includeGroup("com.microsoft.device.display") }
+        }
     }
 }
 

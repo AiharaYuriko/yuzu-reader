@@ -1,3 +1,5 @@
+// Modified for Yuzu.
+
 package eu.kanade.tachiyomi.data.backup.models
 
 import kotlinx.serialization.Serializable
@@ -5,7 +7,7 @@ import kotlinx.serialization.protobuf.ProtoNumber
 
 @Serializable
 data class Backup(
-    @ProtoNumber(1) val backupManga: List<BackupManga>,
+    @ProtoNumber(1) val backupManga: List<BackupManga> = emptyList(),
     @ProtoNumber(2) var backupCategories: List<BackupCategory> = emptyList(),
     // @ProtoNumber(100) var backupBrokenSources, legacy source model with non-compliant proto number,
     @ProtoNumber(101) var backupSources: List<BackupSource> = emptyList(),

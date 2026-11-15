@@ -1,6 +1,9 @@
+// Modified for Yuzu.
+
 package eu.kanade.tachiyomi.data.backup.models
 
 import eu.kanade.tachiyomi.source.model.UpdateStrategy
+import kotlinx.serialization.EncodeDefault
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.protobuf.ProtoNumber
 import mihon.core.common.extensions.JsonObjectEmptyBytes
@@ -13,9 +16,11 @@ import kotlin.time.Instant
 @Serializable
 class BackupManga(
     // in 1.x some of these values have different names
-    @ProtoNumber(1) var source: Long,
+    @EncodeDefault
+    @ProtoNumber(1) var source: Long = 0,
     // url is called key in 1.x
-    @ProtoNumber(2) var url: String,
+    @EncodeDefault
+    @ProtoNumber(2) var url: String = "",
     @ProtoNumber(3) var title: String = "",
     @ProtoNumber(4) var artist: String? = null,
     @ProtoNumber(5) var author: String? = null,
@@ -40,11 +45,11 @@ class BackupManga(
     @ProtoNumber(103) var viewer_flags: Int? = null,
     @ProtoNumber(104) var history: List<BackupHistory> = emptyList(),
     @ProtoNumber(105) var updateStrategy: UpdateStrategy = UpdateStrategy.ALWAYS_UPDATE,
-    // @ProtoNumber(106) var lastModifiedAt: Long, artifact of the abandoned sync attempt
+    @ProtoNumber(106) var lastModifiedAt: Long = 0,
     @ProtoNumber(107) var favoriteModifiedAt: Long? = null,
     // Mihon values start here
     @ProtoNumber(108) var excludedScanlators: List<String> = emptyList(),
-    // @ProtoNumber(109) var version: Long, artifact of the abandoned sync attempt
+    @ProtoNumber(109) var version: Long = 0,
     @ProtoNumber(110) var notes: String = "",
     @ProtoNumber(111) var initialized: Boolean = false,
     @ProtoNumber(112) var memo: ByteArray = JsonObjectEmptyBytes,

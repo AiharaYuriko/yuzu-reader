@@ -1,3 +1,5 @@
+// Modified for Yuzu.
+
 package mihon.app.di
 
 import android.content.Context
@@ -26,6 +28,10 @@ import eu.kanade.tachiyomi.data.download.DownloadWorker
 import eu.kanade.tachiyomi.data.library.LibraryUpdateWorker
 import eu.kanade.tachiyomi.data.library.MetadataUpdateWorker
 import eu.kanade.tachiyomi.data.notification.NotificationReceiver
+import eu.kanade.tachiyomi.data.sync.GoogleDriveAuthorization
+import eu.kanade.tachiyomi.data.sync.LibrarySyncWorker
+import eu.kanade.tachiyomi.data.sync.OneDriveAuthorization
+import eu.kanade.tachiyomi.data.sync.SyncPreferences
 import eu.kanade.tachiyomi.data.track.TrackerManager
 import eu.kanade.tachiyomi.data.updater.AppUpdateChecker
 import eu.kanade.tachiyomi.extension.ExtensionManager
@@ -71,6 +77,7 @@ interface AppGraph : ViewModelGraph {
     fun inject(metadataUpdateWorker: MetadataUpdateWorker)
     fun inject(backupRestoreWorker: BackupRestoreWorker)
     fun inject(backupCreateWorker: BackupCreateWorker)
+    fun inject(librarySyncWorker: LibrarySyncWorker)
     fun inject(delayedTrackingUpdateWorker: DelayedTrackingUpdateWorker)
     fun inject(downloadWorker: DownloadWorker)
     fun inject(notificationReceiver: NotificationReceiver)
@@ -89,6 +96,9 @@ interface AppGraph : ViewModelGraph {
     val sourcePreferences: SourcePreferences
     val trackPreferences: TrackPreferences
     val backupPreferences: BackupPreferences
+    val syncPreferences: SyncPreferences
+    val googleDriveAuthorization: GoogleDriveAuthorization
+    val oneDriveAuthorization: OneDriveAuthorization
     val storagePreferences: StoragePreferences
     val privacyPreferences: PrivacyPreferences
     val securityPreferences: SecurityPreferences

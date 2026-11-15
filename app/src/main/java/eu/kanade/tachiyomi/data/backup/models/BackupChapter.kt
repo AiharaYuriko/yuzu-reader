@@ -1,5 +1,8 @@
+// Modified for Yuzu.
+
 package eu.kanade.tachiyomi.data.backup.models
 
+import kotlinx.serialization.EncodeDefault
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.protobuf.ProtoNumber
 import mihon.core.common.extensions.JsonObjectEmptyBytes
@@ -14,8 +17,9 @@ import kotlin.time.Instant
 class BackupChapter(
     // in 1.x some of these values have different names
     // url is called key in 1.x
-    @ProtoNumber(1) var url: String,
-    @ProtoNumber(2) var name: String,
+    @EncodeDefault
+    @ProtoNumber(1) var url: String = "",
+    @ProtoNumber(2) var name: String = "",
     @ProtoNumber(3) var scanlator: String? = null,
     @ProtoNumber(4) var read: Boolean = false,
     @ProtoNumber(5) var bookmark: Boolean = false,
@@ -26,8 +30,8 @@ class BackupChapter(
     // chapterNumber is called number is 1.x
     @ProtoNumber(9) var chapterNumber: Float = 0F,
     @ProtoNumber(10) var sourceOrder: Long = 0,
-    // @ProtoNumber(11) var lastModifiedAt: Long, artifact of the abandoned sync attempt
-    // @ProtoNumber(12) var version: Long, artifact of the abandoned sync attempt
+    @ProtoNumber(11) var lastModifiedAt: Long = 0,
+    @ProtoNumber(12) var version: Long = 0,
     @ProtoNumber(13) var memo: ByteArray = JsonObjectEmptyBytes,
 ) {
     fun toChapterImpl(): Chapter {

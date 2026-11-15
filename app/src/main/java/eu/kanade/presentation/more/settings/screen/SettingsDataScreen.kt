@@ -1,3 +1,5 @@
+// Modified for Yuzu.
+
 package eu.kanade.presentation.more.settings.screen
 
 import android.content.ActivityNotFoundException
@@ -104,6 +106,7 @@ object SettingsDataScreen : SearchableSettings {
             Preference.PreferenceItem.InfoPreference(stringResource(MR.strings.pref_storage_location_info)),
 
             getBackupAndRestoreGroup(backupPreferences = backupPreferences),
+            syncPreferencesGroup(),
             getDataGroup(),
             getExportGroup(),
         )
