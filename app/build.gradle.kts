@@ -37,7 +37,7 @@ android {
     namespace = "eu.kanade.tachiyomi"
 
     defaultConfig {
-        applicationId = "app.mihon.sync"
+        applicationId = "app.mihon.yuzu"
 
         versionCode = 41
         versionName = "0.21.3"
