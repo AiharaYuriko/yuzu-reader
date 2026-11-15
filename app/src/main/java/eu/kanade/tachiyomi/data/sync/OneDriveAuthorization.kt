@@ -87,7 +87,7 @@ class OneDriveAuthorization internal constructor(private val context: Context, p
     }
 
     private suspend fun application(clientId: String): IMultipleAccountPublicClientApplication = clientLock.withLock {
-        require(parseClientId(clientId) == clientId)
+        require(guid.matches(clientId))
         client?.takeIf { it.first == clientId }?.let { return@withLock it.second }
         val application = runInterruptible(Dispatchers.IO) {
             val packageName = context.packageName
@@ -120,11 +120,10 @@ class OneDriveAuthorization internal constructor(private val context: Context, p
     }
 
     companion object {
+        internal const val DEFAULT_CLIENT_ID = "3b3c0585-21ef-4f25-a2ba-7b990936b862"
         private const val AUTHORITY = "https://login.microsoftonline.com/consumers"
         private val scopes = listOf("https://graph.microsoft.com/Files.ReadWrite.AppFolder")
         private val guid = Regex("[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}")
-
-        fun parseClientId(value: String): String? = value.trim().lowercase().takeIf(guid::matches)
     }
 }
 

@@ -20,13 +20,11 @@
     <string name="sync_drive_sign_in">连接 Google Drive</string>
     <string name="sync_drive_account">Google Drive 账号</string>
     <string name="sync_onedrive_account">OneDrive 账号</string>
-    <string name="sync_onedrive_setup_hint">输入在 Microsoft Entra 中注册的应用程序（客户端）ID。</string>
-    <string name="sync_onedrive_client_id">应用程序（客户端）ID</string>
     <string name="sync_onedrive_sign_in">登录 OneDrive</string>
     <string name="sync_onedrive_reconnect">请重新连接 OneDrive 账号以恢复同步。</string>
-    <string name="sync_onedrive_denied">OneDrive 拒绝访问，请检查 Files.ReadWrite.AppFolder 权限。</string>
+    <string name="sync_onedrive_denied">OneDrive 拒绝访问应用文件夹。请重新登录并授权。</string>
     <string name="sync_onedrive_http_error">OneDrive 同步失败（HTTP %1$d）。</string>
-    <string name="sync_onedrive_setup_error">微软登录失败（%1$s），请检查应用注册配置后重试。</string>
+    <string name="sync_onedrive_setup_error">Microsoft 登录失败（%1$s）。</string>
     <string name="sync_drive_sign_in_again">重新连接</string>
     <string name="sync_drive_reconnect">请重新连接 Google Drive 以继续同步</string>
     <string name="sync_drive_denied">请检查 Yuzu 是否已启用 Google Drive API 访问</string>

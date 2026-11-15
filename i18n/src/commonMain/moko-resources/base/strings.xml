@@ -21,13 +21,11 @@
     <string name="sync_drive_sign_in">Connect Google Drive</string>
     <string name="sync_drive_account">Google Drive account</string>
     <string name="sync_onedrive_account">OneDrive account</string>
-    <string name="sync_onedrive_setup_hint">Enter the application (client) ID from your Microsoft Entra app registration.</string>
-    <string name="sync_onedrive_client_id">Application (client) ID</string>
     <string name="sync_onedrive_sign_in">Sign in to OneDrive</string>
     <string name="sync_onedrive_reconnect">Reconnect your OneDrive account to resume sync.</string>
-    <string name="sync_onedrive_denied">OneDrive denied access. Check the Files.ReadWrite.AppFolder permission.</string>
+    <string name="sync_onedrive_denied">OneDrive denied access to the app folder. Sign in again to grant access.</string>
     <string name="sync_onedrive_http_error">OneDrive sync failed (HTTP %1$d).</string>
-    <string name="sync_onedrive_setup_error">Microsoft sign-in failed (%1$s). Check your app registration and try again.</string>
+    <string name="sync_onedrive_setup_error">Microsoft sign-in failed (%1$s).</string>
     <string name="sync_drive_sign_in_again">Reconnect</string>
     <string name="sync_drive_reconnect">Reconnect Google Drive to continue syncing</string>
     <string name="sync_drive_denied">Check that Google Drive API access is enabled for Yuzu</string>

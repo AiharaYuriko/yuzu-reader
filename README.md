@@ -8,7 +8,7 @@ Open **More → Settings → Data and storage → Library sync** to choose SyncY
 
 - **SyncYomi** uses your server URL and API key.
 - **Google Drive** uses the app data folder. The Android app's package name and signing certificate must be registered for Google OAuth, and the Drive API must be enabled.
-- **OneDrive** uses the app folder. Register an Android platform with the app's package name and signing certificate hash in Microsoft Entra. Enable personal Microsoft accounts and delegated `Files.ReadWrite.AppFolder` access, then enter the application (client) ID in Yuzu.
+- **OneDrive** uses the app folder. Select **OneDrive account**, then sign in with your personal Microsoft account and grant access to the app folder. Use the same Microsoft account on each device.
 
 ## Build
 

@@ -4,7 +4,6 @@ import androidx.activity.compose.LocalActivity
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -39,9 +38,8 @@ internal fun oneDrivePreference(status: String): OneDrivePreference {
     val credentials by sync.oneDriveCredentials.collectAsState()
     val account = remember(credentials) { sync.oneDriveAccount() }
     val scope = rememberCoroutineScope()
-    var edit by remember { mutableStateOf(false) }
+    var manageAccount by remember { mutableStateOf(false) }
     var working by remember { mutableStateOf(false) }
-    var clientId by remember { mutableStateOf("") }
 
     fun updateConnection(block: suspend () -> Unit) {
         working = true
@@ -70,61 +68,53 @@ internal fun oneDrivePreference(status: String): OneDrivePreference {
         }
     }
 
-    if (edit) {
-        val enteredId = OneDriveAuthorization.parseClientId(clientId)
+    fun signIn() {
+        val hostActivity = activity ?: return
+        sync.status.delete()
+        updateConnection {
+            val connected = authorization.connect(
+                hostActivity,
+                account?.clientId ?: OneDriveAuthorization.DEFAULT_CLIENT_ID,
+            )
+            if (connected != null) {
+                sync.oneDriveCredentials.set("${connected.clientId}\n${connected.id}\n${connected.name}")
+                manageAccount = false
+                LibrarySyncWorker.enqueue(context)
+            }
+        }
+    }
+
+    if (manageAccount && account != null) {
         AlertDialog(
-            onDismissRequest = { if (!working) edit = false },
+            onDismissRequest = { if (!working) manageAccount = false },
             title = { Text(stringResource(MR.strings.sync_onedrive_account)) },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                    Text(stringResource(MR.strings.sync_onedrive_setup_hint))
-                    OutlinedTextField(
-                        value = clientId,
-                        onValueChange = { clientId = it },
-                        label = { Text(stringResource(MR.strings.sync_onedrive_client_id)) },
-                        enabled = !working,
-                        singleLine = true,
-                    )
+                    Text(account.name.ifBlank { account.id })
                     if (status.isNotBlank()) Text(status)
                 }
             },
             confirmButton = {
                 TextButton(
-                    onClick = {
-                        if (enteredId != null && activity != null) {
-                            sync.status.delete()
-                            updateConnection {
-                                val connected = authorization.connect(activity, enteredId)
-                                if (connected != null) {
-                                    sync.oneDriveCredentials.set(
-                                        "${connected.clientId}\n${connected.id}\n${connected.name}",
-                                    )
-                                    edit = false
-                                    LibrarySyncWorker.enqueue(context)
-                                }
-                            }
-                        }
-                    },
-                    enabled = enteredId != null && activity != null && !working,
+                    onClick = ::signIn,
+                    enabled = activity != null && !working,
                 ) {
                     Text(stringResource(MR.strings.sync_onedrive_sign_in))
                 }
             },
             dismissButton = {
-                if (account != null) {
-                    TextButton(
-                        onClick = {
-                            updateConnection {
-                                authorization.disconnect(account)
-                                sync.oneDriveCredentials.delete()
-                                sync.status.delete()
-                                edit = false
-                            }
-                        },
-                        enabled = !working,
-                    ) {
-                        Text(stringResource(MR.strings.sync_disconnect))
-                    }
+                TextButton(
+                    onClick = {
+                        updateConnection {
+                            authorization.disconnect(account)
+                            manageAccount = false
+                            sync.oneDriveCredentials.delete()
+                            sync.status.delete()
+                        }
+                    },
+                    enabled = !working,
+                ) {
+                    Text(stringResource(MR.strings.sync_disconnect))
                 }
             },
         )
@@ -134,12 +124,11 @@ internal fun oneDrivePreference(status: String): OneDrivePreference {
         preference = Preference.PreferenceItem.TextPreference(
             title = stringResource(MR.strings.sync_onedrive_account),
             subtitle = account?.name?.ifBlank { account.id } ?: status.ifBlank {
-                stringResource(MR.strings.sync_onedrive_setup_hint)
+                stringResource(MR.strings.sync_onedrive_sign_in)
             },
             onClick = {
                 if (!working) {
-                    clientId = account?.clientId.orEmpty()
-                    edit = true
+                    if (account == null) signIn() else manageAccount = true
                 }
             },
         ),
