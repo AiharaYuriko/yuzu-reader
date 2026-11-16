@@ -39,8 +39,8 @@ android {
     defaultConfig {
         applicationId = "app.mihon.yuzu"
 
-        versionCode = 42
-        versionName = "0.21.4"
+        versionCode = 43
+        versionName = "0.21.5"
 
         buildConfigField("boolean", "TELEMETRY_INCLUDED", "${Config.includeTelemetry}")
         buildConfigField("boolean", "UPDATER_ENABLED", "false")

@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="yuzu_icon_path_fruit_with_pages" translatable="false">M54,39 C47,36 39,38 34,43 C28,49 26,57 29,65 C32,75 41,80 53,80 C65,81 76,75 79,65 C82,56 79,47 73,42 C68,38 60,36 54,39 Z M38,59 C44,58 50,60 54,64 C58,60 64,58 70,59 L69,62 C63,62 58,64 54,68 C50,64 45,62 39,62 Z</string>
+    <string name="yuzu_icon_path_leaf" translatable="false">M52,39 C51,35 48,32 44,31 L45,28 C49,29 52,31 54,34 C57,27 63,24 71,25 C70,33 64,38 56,38 L56,41 L53,41 Z</string>
+</resources>
