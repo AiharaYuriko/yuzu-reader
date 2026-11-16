@@ -52,7 +52,7 @@ class PagerViewerAdapter(private val viewer: PagerViewer) : ViewPagerAdapter() {
         val nextHasMissingChapters = calculateChapterGap(chapters.nextChapter, chapters.currChapter) > 0
 
         // Add previous chapter pages and transition
-        chapters.prevChapter?.pages?.let(newItems::addAll)
+        chapters.prevChapter?.pages?.let { newItems.addAll(layoutPages(it)) }
 
         // Skip transition page if the chapter is loaded & current page is not a transition page
         if (prevHasMissingChapters || forceTransition || chapters.prevChapter?.state !is ReaderChapter.State.Loaded) {
@@ -66,20 +66,20 @@ class PagerViewerAdapter(private val viewer: PagerViewer) : ViewPagerAdapter() {
         if (currPages != null) {
             val pages = currPages.toMutableList()
 
-            val lastPage = pages.last()
-
-            // Insert preprocessed pages into current page list. Pages of the adjacent chapters are split too, and
-            // placed by their index, so only this chapter's belong here.
-            preprocessed.filter { it.chapter.chapter.id == chapters.currChapter.chapter.id }
-                .sortedByDescending { it.index }
-                .forEach { page ->
-                    if (lastPage.index == page.index) {
-                        insertPageLastPage = page
+            if (!viewer.doublePages) {
+                val lastPage = pages.last()
+                // Insert preprocessed splits only into the chapter they belong to.
+                preprocessed.filter { it.chapter.chapter.id == chapters.currChapter.chapter.id }
+                    .sortedByDescending { it.index }
+                    .forEach { page ->
+                        if (lastPage.index == page.index) {
+                            insertPageLastPage = page
+                        }
+                        pages.add(page.index + 1, page)
                     }
-                    pages.add(page.index + 1, page)
-                }
+            }
 
-            newItems.addAll(pages)
+            newItems.addAll(layoutPages(pages))
         }
 
         currentChapter = chapters.currChapter
@@ -96,7 +96,7 @@ class PagerViewerAdapter(private val viewer: PagerViewer) : ViewPagerAdapter() {
                 }
             }
 
-        chapters.nextChapter?.pages?.let(newItems::addAll)
+        chapters.nextChapter?.pages?.let { newItems.addAll(layoutPages(it)) }
 
         val currentItem = items.getOrNull(viewer.pager.currentItem)
 
@@ -126,6 +126,16 @@ class PagerViewerAdapter(private val viewer: PagerViewer) : ViewPagerAdapter() {
         }
     }
 
+    private fun layoutPages(pages: List<ReaderPage>): List<Any> {
+        if (!viewer.doublePages) return pages
+        return pairPages(pages, viewer.readerPreferences.pagerFirstPageAlone.get(), viewer::isWidePage)
+            .map { (first, second) -> if (second == null) first else PagerSpread(first, second) }
+    }
+
+    fun indexOfPage(page: ReaderPage): Int = items.indexOfFirst {
+        it == page || (it is PagerSpread && (it.first == page || it.second == page))
+    }
+
     /**
      * Returns the amount of items of the adapter.
      */
@@ -139,6 +149,7 @@ class PagerViewerAdapter(private val viewer: PagerViewer) : ViewPagerAdapter() {
     override fun createView(container: ViewGroup, position: Int): View {
         return when (val item = items[position]) {
             is ReaderPage -> PagerPageHolder(readerThemedContext, viewer, item)
+            is PagerSpread -> PagerSpreadView(readerThemedContext, viewer, item)
             is ChapterTransition -> PagerTransitionHolder(readerThemedContext, viewer, item)
             else -> throw NotImplementedError("Holder for ${item.javaClass} not implemented")
         }
@@ -148,6 +159,7 @@ class PagerViewerAdapter(private val viewer: PagerViewer) : ViewPagerAdapter() {
      * Returns the current position of the given [view] on the adapter.
      */
     override fun getItemPosition(view: Any): Int {
+        if (view is PagerPageHolder && view.doublePageLayout != viewer.doublePages) return POSITION_NONE
         if (view is PositionableView) {
             val position = items.indexOf(view.item)
             if (position != -1) {

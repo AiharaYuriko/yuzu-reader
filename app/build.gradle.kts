@@ -39,8 +39,8 @@ android {
     defaultConfig {
         applicationId = "app.mihon.yuzu"
 
-        versionCode = 41
-        versionName = "0.21.3"
+        versionCode = 42
+        versionName = "0.21.4"
 
         buildConfigField("boolean", "TELEMETRY_INCLUDED", "${Config.includeTelemetry}")
         buildConfigField("boolean", "UPDATER_ENABLED", "false")
@@ -76,6 +76,7 @@ android {
             isPseudoLocalesEnabled = true
         }
         val release = getByName("release") {
+            buildConfigField("boolean", "UPDATER_ENABLED", "true")
             isMinifyEnabled = true
             isShrinkResources = true
 
@@ -90,6 +91,7 @@ android {
 
         create("foss") {
             initWith(release)
+            buildConfigField("boolean", "UPDATER_ENABLED", "false")
 
             applicationIdSuffix = ".foss"
 
@@ -97,6 +99,7 @@ android {
         }
         create("nightly") {
             initWith(release)
+            buildConfigField("boolean", "UPDATER_ENABLED", "false")
 
             applicationIdSuffix = ".debug"
 
@@ -104,6 +107,7 @@ android {
         }
         create("benchmark") {
             initWith(release)
+            buildConfigField("boolean", "UPDATER_ENABLED", "false")
 
             versionNameSuffix = "-benchmark"
             applicationIdSuffix = ".benchmark"

@@ -468,6 +468,11 @@
     <string name="manga_from_library">書櫃上的作品</string>
     <string name="downloaded_chapters">已下載的章節</string>
     <string name="pref_dual_page_split">分割寬頁</string>
+    <string name="pager_page_layout">頁面配置</string>
+    <string name="pager_page_layout_single">單頁</string>
+    <string name="pager_page_layout_double">雙頁並排</string>
+    <string name="pager_page_layout_wide">寬螢幕時雙頁</string>
+    <string name="pager_first_page_alone">首頁單獨顯示</string>
     <string name="pref_dual_page_invert_summary">若分割後的排版方向與翻閱順序不符</string>
     <string name="pref_dual_page_invert">調換分割寬頁排版</string>
     <string name="pref_dns_over_https">DNS over HTTPS (DoH)</string>

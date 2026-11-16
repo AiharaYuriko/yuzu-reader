@@ -13,6 +13,7 @@ import eu.kanade.tachiyomi.ui.reader.viewer.ReaderPageImageView
 import eu.kanade.tachiyomi.ui.reader.viewer.ReaderProgressIndicator
 import eu.kanade.tachiyomi.ui.webview.WebViewActivity
 import eu.kanade.tachiyomi.widget.ViewPagerAdapter
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.MainScope
@@ -36,7 +37,12 @@ class PagerPageHolder(
     readerThemedContext: Context,
     val viewer: PagerViewer,
     val page: ReaderPage,
+    private val paired: Boolean = false,
 ) : ReaderPageImageView(readerThemedContext), ViewPagerAdapter.PositionableView {
+
+    internal val doublePageLayout = viewer.doublePages
+    internal var imageLoaded = false
+        private set
 
     /**
      * Item that identifies this view. Needed by the adapter to not recreate views.
@@ -144,12 +150,18 @@ class PagerPageHolder(
      * Called when the page is ready.
      */
     private suspend fun setImage() {
+        imageLoaded = false
         progressIndicator?.setProgress(0)
 
         val streamFn = page.stream ?: return
 
         try {
             val buffer = withContext(Dispatchers.IO) { streamFn().use { Buffer().readFrom(it) } }
+            if (doublePageLayout) {
+                val wide = withContext(Dispatchers.Default) { ImageUtil.isWideImage(buffer) }
+                viewer.recordPageWidth(page, wide)
+                if (paired && wide) return
+            }
             // Splitting, merging and sampling the background decode the image, which is CPU work
             val (source, isAnimated, background) = withContext(Dispatchers.Default) {
                 val source = process(item, buffer)
@@ -170,7 +182,7 @@ class PagerPageHolder(
                         minimumScaleType = viewer.config.imageScaleType,
                         cropBorders = viewer.config.imageCropBorders,
                         zoomStartPosition = viewer.config.imageZoomType,
-                        landscapeZoom = viewer.config.landscapeZoom,
+                        landscapeZoom = !paired && viewer.config.landscapeZoom,
                     ),
                 )
                 if (!isAnimated) {
@@ -178,6 +190,8 @@ class PagerPageHolder(
                 }
                 removeErrorLayout()
             }
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Throwable) {
             logcat(LogPriority.ERROR, e)
             withContext(Dispatchers.Main) {
@@ -187,6 +201,8 @@ class PagerPageHolder(
     }
 
     private fun process(page: ReaderPage, imageSource: BufferedSource): BufferedSource {
+        if (doublePageLayout) return imageSource
+
         if (viewer.config.dualPageRotateToFit) {
             return rotateDualPage(imageSource)
         }
@@ -247,13 +263,16 @@ class PagerPageHolder(
      * Called when the page has an error.
      */
     private fun setError(error: Throwable?) {
+        imageLoaded = false
         progressIndicator?.hide()
         showErrorLayout(error)
     }
 
     override fun onImageLoaded() {
         super.onImageLoaded()
+        imageLoaded = true
         progressIndicator?.hide()
+        if (paired) viewer.onSpreadImageLoaded(this)
     }
 
     /**

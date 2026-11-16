@@ -117,6 +117,17 @@ class ReaderPreferences(
 
     // region Split two-page spread
 
+    val pagerPageLayout: Preference<PagerPageLayout> =
+        preferenceStore.getEnum("pref_pager_page_layout", PagerPageLayout.SINGLE)
+
+    val pagerFirstPageAlone: Preference<Boolean> = preferenceStore.getBoolean("pref_pager_first_page_alone", true)
+
+    enum class PagerPageLayout(val titleRes: StringResource) {
+        SINGLE(MR.strings.pager_page_layout_single),
+        DOUBLE(MR.strings.pager_page_layout_double),
+        WIDE(MR.strings.pager_page_layout_wide),
+    }
+
     val dualPageSplitPaged: Preference<Boolean> = preferenceStore.getBoolean("pref_dual_page_split", false)
 
     val dualPageInvertPaged: Preference<Boolean> = preferenceStore.getBoolean("pref_dual_page_invert", false)

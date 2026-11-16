@@ -441,6 +441,11 @@
     <string name="pref_show_navigation_mode">Show tap zones overlay</string>
     <string name="pref_show_navigation_mode_summary">Briefly show when reader is opened</string>
     <string name="pref_dual_page_split">Split wide pages</string>
+    <string name="pager_page_layout">Page layout</string>
+    <string name="pager_page_layout_single">Single page</string>
+    <string name="pager_page_layout_double">Double pages</string>
+    <string name="pager_page_layout_wide">Double pages on wide screens</string>
+    <string name="pager_first_page_alone">Show first page alone</string>
     <string name="pref_dual_page_invert">Invert split page placement</string>
     <string name="pref_dual_page_invert_summary">If the placement of the split wide pages don\'t match reading direction</string>
     <string name="pref_page_rotate">Rotate wide pages to fit</string>

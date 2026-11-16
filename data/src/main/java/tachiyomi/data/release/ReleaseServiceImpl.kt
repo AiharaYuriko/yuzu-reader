@@ -6,6 +6,7 @@ import dev.zacsweers.metro.ContributesBinding
 import dev.zacsweers.metro.Inject
 import dev.zacsweers.metro.SingleIn
 import eu.kanade.tachiyomi.network.GET
+import eu.kanade.tachiyomi.network.HttpException
 import eu.kanade.tachiyomi.network.NetworkHelper
 import eu.kanade.tachiyomi.network.awaitSuccess
 import eu.kanade.tachiyomi.network.parseAs
@@ -25,13 +26,18 @@ class ReleaseServiceImpl(
 ) : ReleaseService {
 
     override suspend fun latest(arguments: GetApplicationRelease.Arguments): Release? {
-        val release = withContext(Dispatchers.IO) {
-            with(json) {
-                networkService.client
-                    .newCall(GET("https://api.github.com/repos/${arguments.repository}/releases/latest"))
-                    .awaitSuccess()
-                    .parseAs<GithubRelease>()
+        val release = try {
+            withContext(Dispatchers.IO) {
+                with(json) {
+                    networkService.client
+                        .newCall(GET("https://api.github.com/repos/${arguments.repository}/releases/latest"))
+                        .awaitSuccess()
+                        .parseAs<GithubRelease>()
+                }
             }
+        } catch (e: HttpException) {
+            if (e.code == 404) return null
+            throw e
         }
 
         val downloadLink = getDownloadLink(release = release, isFoss = arguments.isFoss) ?: return null
@@ -47,21 +53,16 @@ class ReleaseServiceImpl(
     }
 
     private fun getDownloadLink(release: GithubRelease, isFoss: Boolean): String? {
-        val map = release.assets.associate { asset ->
-            BUILD_TYPES.find { "-$it" in asset.name } to asset.downloadLink
+        val assets = release.assets.associate { it.name to it.downloadLink }
+        if (isFoss) {
+            return assets["yuzu-${release.version}-foss.apk"]
         }
-
-        return if (!isFoss) {
-            map[Build.SUPPORTED_ABIS[0]] ?: map[null]
-        } else {
-            map[FOSS]
-        }
+        return Build.SUPPORTED_ABIS.firstNotNullOfOrNull { abi ->
+            assets["yuzu-$abi-${release.version}.apk"]
+        } ?: assets["yuzu-${release.version}.apk"]
     }
 
     companion object {
-        private const val FOSS = "foss"
-        private val BUILD_TYPES = listOf(FOSS, "arm64-v8a", "armeabi-v7a", "x86_64", "x86")
-
         /**
          * Regular expression that matches a mention to a valid GitHub username, like it's
          * done in GitHub Flavored Markdown. It follows these constraints:

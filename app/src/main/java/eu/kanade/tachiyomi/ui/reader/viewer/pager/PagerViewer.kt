@@ -16,12 +16,17 @@ import eu.kanade.tachiyomi.ui.reader.model.ChapterTransition
 import eu.kanade.tachiyomi.ui.reader.model.InsertPage
 import eu.kanade.tachiyomi.ui.reader.model.ReaderPage
 import eu.kanade.tachiyomi.ui.reader.model.ViewerChapters
+import eu.kanade.tachiyomi.ui.reader.setting.ReaderPreferences.PagerPageLayout
 import eu.kanade.tachiyomi.ui.reader.viewer.Viewer
 import eu.kanade.tachiyomi.ui.reader.viewer.ViewerNavigation.NavigationRegion
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.merge
+import kotlinx.coroutines.flow.onEach
 import mihon.app.di.appGraph
 import tachiyomi.core.common.util.system.logcat
+import java.util.WeakHashMap
 import kotlin.math.min
 
 /**
@@ -56,6 +61,20 @@ abstract class PagerViewer(val activity: ReaderActivity) : Viewer {
      * Currently active item. It can be a chapter page or a chapter transition.
      */
     private var currentPage: Any? = null
+    private var requestedPage: ReaderPage? = null
+    private var displayedChapters: ViewerChapters? = null
+    private val widePages = WeakHashMap<ReaderPage, Boolean>()
+    private var updateLayoutWhenIdle = false
+    private val updatePageLayout = Runnable {
+        if (isIdle) {
+            displayedChapters?.let { setChaptersInternal(it) }
+        } else {
+            updateLayoutWhenIdle = true
+        }
+    }
+
+    internal var doublePages = false
+        private set
 
     /**
      * Viewer chapters to set when the pager enters idle mode. Otherwise, if the view was settling
@@ -71,12 +90,17 @@ abstract class PagerViewer(val activity: ReaderActivity) : Viewer {
         set(value) {
             field = value
             if (value) {
-                awaitingIdleViewerChapters?.let { viewerChapters ->
+                val pendingChapters = awaitingIdleViewerChapters
+                awaitingIdleViewerChapters = null
+                pendingChapters?.let { viewerChapters ->
                     setChaptersInternal(viewerChapters)
-                    awaitingIdleViewerChapters = null
                     if (viewerChapters.currChapter.pages?.size == 1) {
                         adapter.nextTransition?.to?.let(activity::requestPreloadChapter)
                     }
+                }
+                if (updateLayoutWhenIdle) {
+                    updateLayoutWhenIdle = false
+                    if (pendingChapters == null) requestPageLayoutUpdate()
                 }
             }
         }
@@ -119,11 +143,16 @@ abstract class PagerViewer(val activity: ReaderActivity) : Viewer {
                 NavigationRegion.LEFT -> moveLeft()
             }
         }
-        pager.longTapListener = f@{
+        pager.longTapListener = f@{ event ->
             if (activity.viewModel.state.value.menuVisible || config.longTapEnabled) {
                 val item = adapter.items.getOrNull(pager.currentItem)
-                if (item is ReaderPage) {
-                    activity.onPageLongTap(item)
+                val page = when (item) {
+                    is ReaderPage -> item
+                    is PagerSpread -> getSpreadView(item)?.pageAt(event.rawX)
+                    else -> null
+                }
+                if (page != null) {
+                    activity.onPageLongTap(page)
                     return@f true
                 }
             }
@@ -144,9 +173,19 @@ abstract class PagerViewer(val activity: ReaderActivity) : Viewer {
             val showOnStart = config.navigationOverlayOnStart || config.forceNavigationOverlay
             activity.binding.navigationOverlay.setNavigation(config.navigator, showOnStart)
         }
+
+        merge(
+            readerPreferences.pagerPageLayout.changes(),
+            readerPreferences.pagerFirstPageAlone.changes(),
+        ).onEach { requestPageLayoutUpdate() }.launchIn(scope)
+
+        pager.addOnLayoutChangeListener { _, _, _, _, _, _, _, _, _ ->
+            if (doublePages != shouldShowDoublePages()) requestPageLayoutUpdate()
+        }
     }
 
     override fun destroy() {
+        pager.removeCallbacks(updatePageLayout)
         super.destroy()
         scope.cancel()
     }
@@ -167,15 +206,28 @@ abstract class PagerViewer(val activity: ReaderActivity) : Viewer {
      * Returns the PagerPageHolder for the provided page
      */
     private fun getPageHolder(page: ReaderPage): PagerPageHolder? =
-        pager.children
-            .filterIsInstance(PagerPageHolder::class.java)
+        pager.children.flatMap {
+            when (it) {
+                is PagerPageHolder -> sequenceOf(it)
+                is PagerSpreadView -> sequenceOf(it.first, it.second)
+                else -> emptySequence()
+            }
+        }
             .firstOrNull { it.item == page }
+
+    private fun getSpreadView(spread: PagerSpread): PagerSpreadView? =
+        pager.children.filterIsInstance<PagerSpreadView>().firstOrNull { it.item == spread }
 
     /**
      * Called when a new page (either a [ReaderPage] or [ChapterTransition]) is marked as active
      */
-    private fun onPageChange(position: Int) {
-        val page = adapter.items.getOrNull(position)
+    private fun onPageChange(position: Int, preferredPage: ReaderPage? = requestedPage) {
+        val item = adapter.items.getOrNull(position)
+        val page = if (item is PagerSpread) {
+            preferredPage?.takeIf { it == item.first || it == item.second } ?: item.first
+        } else {
+            item
+        }
         if (page != null && currentPage != page) {
             val allowPreload = checkAllowPreload(page as? ReaderPage)
             val forward = when {
@@ -197,6 +249,9 @@ abstract class PagerViewer(val activity: ReaderActivity) : Viewer {
                 is ReaderPage -> onReaderPageSelected(page, allowPreload, forward)
                 is ChapterTransition -> onTransitionSelected(page)
             }
+        }
+        if (item is PagerSpread) {
+            getSpreadView(item)?.let(::completeLastSpread)
         }
     }
 
@@ -276,6 +331,19 @@ abstract class PagerViewer(val activity: ReaderActivity) : Viewer {
      * Sets the active [chapters] on this pager.
      */
     private fun setChaptersInternal(chapters: ViewerChapters) {
+        val opening = pager.isGone
+        val showDoublePages = shouldShowDoublePages()
+        val anchor = if (opening) {
+            val pages = chapters.currChapter.pages?.takeIf { it.isNotEmpty() } ?: return
+            pages[min(chapters.currChapter.requestedPage, pages.lastIndex)]
+        } else if (doublePages || showDoublePages) {
+            (currentPage as? ReaderPage)?.let { if (it is InsertPage) it.parent else it }
+        } else {
+            null
+        }
+        displayedChapters = chapters
+        doublePages = showDoublePages
+
         // Remove listener so the change in item doesn't trigger it
         pager.removeOnPageChangeListener(pagerListener)
 
@@ -284,29 +352,36 @@ abstract class PagerViewer(val activity: ReaderActivity) : Viewer {
         adapter.setChapters(chapters, forceTransition)
 
         // Layout the pager once a chapter is being set
-        if (pager.isGone) {
+        if (anchor != null) {
+            val position = adapter.indexOfPage(anchor)
+            if (position != -1) pager.setCurrentItem(position, false)
+        }
+        if (opening) {
             logcat { "Pager first layout" }
-            val pages = chapters.currChapter.pages ?: return
-            moveToPage(pages[min(chapters.currChapter.requestedPage, pages.lastIndex)])
             pager.isVisible = true
         }
 
         pager.addOnPageChangeListener(pagerListener)
         // Manually call onPageChange to update the UI
-        onPageChange(pager.currentItem)
+        onPageChange(pager.currentItem, anchor)
     }
 
     /**
      * Tells this viewer to move to the given [page].
      */
     override fun moveToPage(page: ReaderPage) {
-        val position = adapter.items.indexOf(page)
+        val position = adapter.indexOfPage(page)
         if (position != -1) {
             val currentPosition = pager.currentItem
-            pager.setCurrentItem(position, true)
+            requestedPage = page
+            try {
+                pager.setCurrentItem(position, true)
+            } finally {
+                requestedPage = null
+            }
             // manually call onPageChange since ViewPager listener is not triggered in this case
             if (currentPosition == position) {
-                onPageChange(position)
+                onPageChange(position, page)
             }
         } else {
             logcat { "Page $page not found in adapter" }
@@ -376,8 +451,52 @@ abstract class PagerViewer(val activity: ReaderActivity) : Viewer {
     private fun refreshAdapter() {
         val currentItem = pager.currentItem
         adapter.refresh()
+        pager.removeOnPageChangeListener(pagerListener)
         pager.adapter = adapter
         pager.setCurrentItem(currentItem, false)
+        pager.addOnPageChangeListener(pagerListener)
+    }
+
+    private fun shouldShowDoublePages(): Boolean = when (readerPreferences.pagerPageLayout.get()) {
+        PagerPageLayout.SINGLE -> false
+        PagerPageLayout.DOUBLE -> true
+        PagerPageLayout.WIDE -> if (pager.width > 0 && pager.height > 0) {
+            pager.width > pager.height
+        } else {
+            val config = activity.resources.configuration
+            config.screenWidthDp > config.screenHeightDp
+        }
+    }
+
+    private fun requestPageLayoutUpdate() {
+        pager.removeCallbacks(updatePageLayout)
+        pager.post(updatePageLayout)
+    }
+
+    internal fun isWidePage(page: ReaderPage): Boolean = widePages[page] == true
+
+    internal fun recordPageWidth(page: ReaderPage, wide: Boolean) {
+        val wasWide = widePages.put(page, wide) == true
+        if (doublePages && wasWide != wide) requestPageLayoutUpdate()
+    }
+
+    internal fun onSpreadImageLoaded(holder: PagerPageHolder) {
+        pager.post {
+            val spreadView = holder.parent as? PagerSpreadView ?: return@post
+            if (spreadView.parent === pager) completeLastSpread(spreadView)
+        }
+    }
+
+    private fun completeLastSpread(view: PagerSpreadView) {
+        val spread = view.item
+        if (adapter.items.getOrNull(pager.currentItem) == spread &&
+            currentPage == spread.first &&
+            spread.second.index == spread.second.chapter.pages?.lastIndex &&
+            view.first.imageLoaded && view.second.imageLoaded
+        ) {
+            currentPage = spread.second
+            onReaderPageSelected(spread.second, allowPreload = true, forward = true)
+        }
     }
 
     /**
@@ -446,7 +565,7 @@ abstract class PagerViewer(val activity: ReaderActivity) : Viewer {
     fun onPageSplit(currentPage: ReaderPage, newPage: InsertPage) {
         activity.runOnUiThread {
             // Need to insert on UI thread else images will go blank
-            adapter.onPageSplit(currentPage, newPage)
+            if (!doublePages) adapter.onPageSplit(currentPage, newPage)
         }
     }
 

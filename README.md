@@ -14,6 +14,12 @@ Open **More → Settings → Data and storage → Library sync** to choose SyncY
 
 Use the Gradle wrapper to build a debug APK with `./gradlew :app:assembleDebug` (`.\gradlew.bat :app:assembleDebug` on Windows). See the [Mihon contribution guide](https://github.com/mihonapp/mihon/blob/v0.21.3/CONTRIBUTING.md) for Android development setup.
 
+## App updates
+
+The standard release build checks [Yuzu GitHub Releases](https://github.com/AiharaYuriko/yuzu-reader/releases). To check manually, open **More → Settings → About → Check for updates**.
+
+To publish an update, increase both `versionCode` and `versionName` in `app/build.gradle.kts`. Build with `./gradlew :app:assembleRelease` using the same signing key as the existing Yuzu release. Publish a regular GitHub Release with the tag `v<versionName>`. Attach the universal APK as `yuzu-v<versionName>.apk`. Optionally attach ABI-specific APKs such as `yuzu-arm64-v8a-v<versionName>.apk`. The updater prefers a compatible ABI-specific APK and falls back to the universal APK.
+
 ## License and credits
 
 Yuzu is distributed under the [Apache License 2.0](./LICENSE). Thanks to the [Mihon contributors](https://github.com/mihonapp/mihon/graphs/contributors).

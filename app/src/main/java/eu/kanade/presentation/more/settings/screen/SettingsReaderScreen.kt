@@ -196,10 +196,21 @@ object SettingsReaderScreen : SearchableSettings {
         val imageScaleType by imageScaleTypePref.collectAsState()
         val dualPageSplit by dualPageSplitPref.collectAsState()
         val rotateToFit by rotateToFitPref.collectAsState()
+        val pageLayout by readerPreferences.pagerPageLayout.collectAsState()
 
         return Preference.PreferenceGroup(
             title = stringResource(MR.strings.pager_viewer),
             preferenceItems = listOf(
+                Preference.PreferenceItem.ListPreference(
+                    preference = readerPreferences.pagerPageLayout,
+                    entries = ReaderPreferences.PagerPageLayout.entries.associateWith { stringResource(it.titleRes) },
+                    title = stringResource(MR.strings.pager_page_layout),
+                ),
+                Preference.PreferenceItem.SwitchPreference(
+                    preference = readerPreferences.pagerFirstPageAlone,
+                    title = stringResource(MR.strings.pager_first_page_alone),
+                    visible = pageLayout != ReaderPreferences.PagerPageLayout.SINGLE,
+                ),
                 Preference.PreferenceItem.ListPreference(
                     preference = navModePref,
                     entries = ReaderPreferences.TapZones

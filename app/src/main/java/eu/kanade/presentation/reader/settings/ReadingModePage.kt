@@ -65,6 +65,23 @@ internal fun ColumnScope.ReadingModePage(viewModel: ReaderSettingsViewModel) {
 private fun ColumnScope.PagerViewerSettings(viewModel: ReaderSettingsViewModel) {
     HeadingItem(MR.strings.pager_viewer)
 
+    val pageLayout by viewModel.preferences.pagerPageLayout.collectAsState()
+    SettingsChipRow(MR.strings.pager_page_layout) {
+        ReaderPreferences.PagerPageLayout.entries.forEach { layout ->
+            FilterChip(
+                selected = layout == pageLayout,
+                onClick = { viewModel.preferences.pagerPageLayout.set(layout) },
+                label = { Text(stringResource(layout.titleRes)) },
+            )
+        }
+    }
+    if (pageLayout != ReaderPreferences.PagerPageLayout.SINGLE) {
+        CheckboxItem(
+            label = stringResource(MR.strings.pager_first_page_alone),
+            pref = viewModel.preferences.pagerFirstPageAlone,
+        )
+    }
+
     val navigationModePager by viewModel.preferences.navigationModePager.collectAsState()
     val pagerNavInverted by viewModel.preferences.pagerNavInverted.collectAsState()
     TapZonesItems(
