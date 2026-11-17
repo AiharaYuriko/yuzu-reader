@@ -7,6 +7,7 @@ import eu.kanade.tachiyomi.ui.reader.model.InsertPage
 import eu.kanade.tachiyomi.ui.reader.model.ReaderChapter
 import eu.kanade.tachiyomi.ui.reader.model.ReaderPage
 import eu.kanade.tachiyomi.ui.reader.model.ViewerChapters
+import eu.kanade.tachiyomi.ui.reader.setting.ReaderPreferences.PagerPageLayout
 import eu.kanade.tachiyomi.ui.reader.viewer.calculateChapterGap
 import eu.kanade.tachiyomi.util.system.createReaderThemeContext
 import eu.kanade.tachiyomi.widget.ViewPagerAdapter
@@ -128,8 +129,9 @@ class PagerViewerAdapter(private val viewer: PagerViewer) : ViewPagerAdapter() {
 
     private fun layoutPages(pages: List<ReaderPage>): List<Any> {
         if (!viewer.doublePages) return pages
+        val stitched = viewer.readerPreferences.pagerPageLayout.get() == PagerPageLayout.STITCHED
         return pairPages(pages, viewer.readerPreferences.pagerFirstPageAlone.get(), viewer::isWidePage)
-            .map { (first, second) -> if (second == null) first else PagerSpread(first, second) }
+            .map { (first, second) -> if (second == null) first else PagerSpread(first, second, stitched) }
     }
 
     fun indexOfPage(page: ReaderPage): Int = items.indexOfFirst {

@@ -231,7 +231,7 @@ object ImageUtil {
         }
     }
 
-    private fun chooseBackground(context: Context, image: Bitmap): Drawable {
+    fun chooseBackground(context: Context, image: Bitmap): Drawable {
         val whiteColor = Color.WHITE
         if (image.width < 50 || image.height < 50) {
             return whiteColor.toDrawable()

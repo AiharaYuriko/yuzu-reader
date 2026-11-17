@@ -472,6 +472,7 @@
     <string name="pager_page_layout_single">單頁</string>
     <string name="pager_page_layout_double">雙頁並排</string>
     <string name="pager_page_layout_wide">寬螢幕時雙頁</string>
+    <string name="pager_page_layout_stitched">拼接雙頁</string>
     <string name="pager_first_page_alone">首頁單獨顯示</string>
     <string name="pref_dual_page_invert_summary">若分割後的排版方向與翻閱順序不符</string>
     <string name="pref_dual_page_invert">調換分割寬頁排版</string>

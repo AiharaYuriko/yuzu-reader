@@ -192,6 +192,14 @@ open class ReaderPageImageView @JvmOverloads constructor(
      */
     fun canPanRight(): Boolean = canPan { it.right }
 
+    internal fun sourceXAt(screenX: Float): Float? {
+        val view = pageView as? SubsamplingScaleImageView ?: return null
+        if (!view.isReady) return null
+        val location = IntArray(2)
+        view.getLocationOnScreen(location)
+        return view.viewToSourceCoord(screenX - location[0], 0F)?.x
+    }
+
     /**
      * Check whether the image can be panned.
      * @param fn a function that returns the direction to check for

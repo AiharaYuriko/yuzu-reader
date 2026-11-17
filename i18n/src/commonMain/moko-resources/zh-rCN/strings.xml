@@ -472,6 +472,7 @@
     <string name="pager_page_layout_single">单页</string>
     <string name="pager_page_layout_double">双页并排</string>
     <string name="pager_page_layout_wide">宽屏时双页</string>
+    <string name="pager_page_layout_stitched">拼接双页</string>
     <string name="pager_first_page_alone">首页单独显示</string>
     <string name="pref_dual_page_invert">拆分双页时交换顺序</string>
     <string name="pref_dual_page_invert_summary">拆分双页的顺序与阅读方向不符时可以开启</string>

@@ -17,6 +17,7 @@ import eu.kanade.tachiyomi.ui.reader.model.InsertPage
 import eu.kanade.tachiyomi.ui.reader.model.ReaderPage
 import eu.kanade.tachiyomi.ui.reader.model.ViewerChapters
 import eu.kanade.tachiyomi.ui.reader.setting.ReaderPreferences.PagerPageLayout
+import eu.kanade.tachiyomi.ui.reader.viewer.ReaderPageImageView
 import eu.kanade.tachiyomi.ui.reader.viewer.Viewer
 import eu.kanade.tachiyomi.ui.reader.viewer.ViewerNavigation.NavigationRegion
 import kotlinx.coroutines.MainScope
@@ -203,17 +204,16 @@ abstract class PagerViewer(val activity: ReaderActivity) : Viewer {
     }
 
     /**
-     * Returns the PagerPageHolder for the provided page
+     * Returns the image view that displays the provided page.
      */
-    private fun getPageHolder(page: ReaderPage): PagerPageHolder? =
-        pager.children.flatMap {
+    private fun getPageImage(page: ReaderPage): ReaderPageImageView? =
+        pager.children.firstNotNullOfOrNull {
             when (it) {
-                is PagerPageHolder -> sequenceOf(it)
-                is PagerSpreadView -> sequenceOf(it.first, it.second)
-                else -> emptySequence()
+                is PagerPageHolder -> it.takeIf { holder -> holder.page == page }
+                is PagerSpreadView -> it.imageFor(page)
+                else -> null
             }
         }
-            .firstOrNull { it.item == page }
 
     private fun getSpreadView(spread: PagerSpread): PagerSpreadView? =
         pager.children.filterIsInstance<PagerSpreadView>().firstOrNull { it.item == spread }
@@ -284,7 +284,7 @@ abstract class PagerViewer(val activity: ReaderActivity) : Viewer {
         activity.onPageSelected(page)
 
         // Notify holder of page change
-        getPageHolder(page)?.onPageSelected(forward)
+        getPageImage(page)?.onPageSelected(forward)
 
         // Skip preload on inserts it causes unwanted page jumping
         if (page is InsertPage) {
@@ -407,7 +407,7 @@ abstract class PagerViewer(val activity: ReaderActivity) : Viewer {
      */
     protected open fun moveRight() {
         if (pager.currentItem != adapter.count - 1) {
-            val holder = (currentPage as? ReaderPage)?.let(::getPageHolder)
+            val holder = (currentPage as? ReaderPage)?.let(::getPageImage)
             if (holder != null && config.navigateToPan && holder.canPanRight()) {
                 holder.panRight()
             } else {
@@ -421,7 +421,7 @@ abstract class PagerViewer(val activity: ReaderActivity) : Viewer {
      */
     protected open fun moveLeft() {
         if (pager.currentItem != 0) {
-            val holder = (currentPage as? ReaderPage)?.let(::getPageHolder)
+            val holder = (currentPage as? ReaderPage)?.let(::getPageImage)
             if (holder != null && config.navigateToPan && holder.canPanLeft()) {
                 holder.panLeft()
             } else {
@@ -459,7 +459,7 @@ abstract class PagerViewer(val activity: ReaderActivity) : Viewer {
 
     private fun shouldShowDoublePages(): Boolean = when (readerPreferences.pagerPageLayout.get()) {
         PagerPageLayout.SINGLE -> false
-        PagerPageLayout.DOUBLE -> true
+        PagerPageLayout.DOUBLE, PagerPageLayout.STITCHED -> true
         PagerPageLayout.WIDE -> if (pager.width > 0 && pager.height > 0) {
             pager.width > pager.height
         } else {
@@ -480,9 +480,8 @@ abstract class PagerViewer(val activity: ReaderActivity) : Viewer {
         if (doublePages && wasWide != wide) requestPageLayoutUpdate()
     }
 
-    internal fun onSpreadImageLoaded(holder: PagerPageHolder) {
+    internal fun onSpreadImageLoaded(spreadView: PagerSpreadView) {
         pager.post {
-            val spreadView = holder.parent as? PagerSpreadView ?: return@post
             if (spreadView.parent === pager) completeLastSpread(spreadView)
         }
     }
@@ -492,7 +491,7 @@ abstract class PagerViewer(val activity: ReaderActivity) : Viewer {
         if (adapter.items.getOrNull(pager.currentItem) == spread &&
             currentPage == spread.first &&
             spread.second.index == spread.second.chapter.pages?.lastIndex &&
-            view.first.imageLoaded && view.second.imageLoaded
+            view.imagesLoaded
         ) {
             currentPage = spread.second
             onReaderPageSelected(spread.second, allowPreload = true, forward = true)

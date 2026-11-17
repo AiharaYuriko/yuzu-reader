@@ -126,6 +126,7 @@ class ReaderPreferences(
         SINGLE(MR.strings.pager_page_layout_single),
         DOUBLE(MR.strings.pager_page_layout_double),
         WIDE(MR.strings.pager_page_layout_wide),
+        STITCHED(MR.strings.pager_page_layout_stitched),
     }
 
     val dualPageSplitPaged: Preference<Boolean> = preferenceStore.getBoolean("pref_dual_page_split", false)

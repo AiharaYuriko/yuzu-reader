@@ -17,6 +17,7 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.MainScope
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.supervisorScope
@@ -38,6 +39,7 @@ class PagerPageHolder(
     val viewer: PagerViewer,
     val page: ReaderPage,
     private val paired: Boolean = false,
+    private val showSeparateImage: StateFlow<Boolean>? = null,
 ) : ReaderPageImageView(readerThemedContext), ViewPagerAdapter.PositionableView {
 
     internal val doublePageLayout = viewer.doublePages
@@ -67,7 +69,8 @@ class PagerPageHolder(
      */
     private var loadJob: Job? = null
 
-    init {
+    override fun onAttachedToWindow() {
+        super.onAttachedToWindow()
         loadJob = scope.launch { loadPageAndProcessStatus() }
     }
 
@@ -112,7 +115,23 @@ class PagerPageHolder(
                             progressIndicator?.setProgress(value)
                         }
                     }
-                    Page.State.Ready -> setImage()
+                    Page.State.Ready -> {
+                        val showImage = showSeparateImage
+                        if (showImage == null) {
+                            setImage()
+                        } else {
+                            showImage.collectLatest { show ->
+                                if (show) {
+                                    setImage()
+                                } else {
+                                    imageLoaded = false
+                                    recycle()
+                                    progressIndicator?.hide()
+                                    removeErrorLayout()
+                                }
+                            }
+                        }
+                    }
                     is Page.State.Error -> setError(state.error)
                 }
             }
@@ -272,7 +291,7 @@ class PagerPageHolder(
         super.onImageLoaded()
         imageLoaded = true
         progressIndicator?.hide()
-        if (paired) viewer.onSpreadImageLoaded(this)
+        if (paired) (parent?.parent as? PagerSpreadView)?.let(viewer::onSpreadImageLoaded)
     }
 
     /**
